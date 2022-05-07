@@ -1,0 +1,27 @@
+{{define "content"}}
+    <section class="section">
+
+      <div class="tile is-ancestor">
+        <div class="tile is-parent">
+          <div class="tile is-child box">
+
+            <div class="columns">
+              
+              <div class="column">
+                <p class="title">{{ .Name }}</p>
+                <p>{{ .Overview }}</p>
+                <div id="gif-wrap"></div>
+                <div id="gif-logo"><img src="https://storage.googleapis.com/chydlx/codepen/random-gif-generator/giphy-logo.gif"/></div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+
+      
+       
+    </section>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="/assets/giphy.js"></script>
+{{end}}

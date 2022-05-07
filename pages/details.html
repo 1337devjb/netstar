@@ -1,0 +1,40 @@
+{{define "content"}}
+    <section class="section">
+
+      <div class="tile is-ancestor">
+        <div class="tile is-parent">
+          <div class="tile is-child box">
+
+            <div class="columns">
+              <div class="column">
+                <img src="https://image.tmdb.org/t/p/original/{{ .PosterPath }}">
+              </div>
+              <div class="column">
+                <p class="title">{{ .Name }}</p>
+
+                <p>{{ .Overview }}</p>
+                
+                
+                {{ range.Seasons}}
+
+                <a href="/details/season?id={{ $.ID}}&seasonNumber={{ .SeasonNumber}}">
+                  <div class="tile is-ancestor">
+                    <div class="tile is-parent">
+                  <div class="tile is-child box">
+                  {{ .Name }}
+                  </div>
+                </div>
+              </div>
+                </a>
+                {{ end}}
+                
+                
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+       
+    </section>
+{{end}}
