@@ -6,13 +6,12 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"time"
 
 	"bereths.com/netstar/themoviedb"
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
 // declare template
@@ -28,19 +27,26 @@ type Search struct {
 	Results    *themoviedb.Results
 }
 
+type Config struct {
+	APIKey       string `mapstructure:API_KEY`
+	Language     string `mapstructure:LANGUAGE`
+	IncludeAdult bool   `mapstructure:INCLUDE_ADULT`
+	Port         string `mapstructure:PORT`
+}
+
 // define the route urls here
-func newRouter(themoviedbAPI *themoviedb.Client) *mux.Router {
+func NewRouter(themoviedbAPI *themoviedb.Client) *mux.Router {
 	r := mux.NewRouter()
 	// index
-	r.HandleFunc("/", indexHandler).Methods("GET")
+	r.HandleFunc("/", IndexHandler).Methods("GET")
 	// search like /search?q=Star Wars
-	r.HandleFunc("/search", searchHandler(themoviedbAPI)).Methods("GET")
+	r.HandleFunc("/search", SearchHandler(themoviedbAPI)).Methods("GET")
 	// details like /search?id=1337
-	r.HandleFunc("/details", tvShowDetailsHandler(themoviedbAPI)).Methods("GET")
+	r.HandleFunc("/details", TVShowDetailsHandler(themoviedbAPI)).Methods("GET")
 	// details for seasion like /search?id=1337&seasonNumber=1
-	r.HandleFunc("/details/season", seasonDetailsHandler(themoviedbAPI)).Methods("GET")
+	r.HandleFunc("/details/season", SeasonDetailsHandler(themoviedbAPI)).Methods("GET")
 	// details for episode like /details/episode?id=1337&seasonNumber=1&episodeNumber=4
-	r.HandleFunc("/details/episode", episodeDetailsHandler(themoviedbAPI)).Methods("GET")
+	r.HandleFunc("/details/episode", EpisodeDetailsHandler(themoviedbAPI)).Methods("GET")
 
 	// declare static files
 	staticFileDirectory := http.Dir("./assets/")
@@ -52,7 +58,7 @@ func newRouter(themoviedbAPI *themoviedb.Client) *mux.Router {
 }
 
 // index page
-func indexHandler(w http.ResponseWriter, r *http.Request) {
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	buf := &bytes.Buffer{}
 	err := index.ExecuteTemplate(w, "base", nil)
 	if err != nil {
@@ -64,7 +70,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // handles the search a user executes
-func searchHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
+func SearchHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, err := url.Parse(r.URL.String())
 		if err != nil {
@@ -112,7 +118,7 @@ func searchHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
 }
 
 // handles the tv show details if a user clicks on a tv show
-func tvShowDetailsHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
+func TVShowDetailsHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, err := url.Parse(r.URL.String())
 		if err != nil {
@@ -141,7 +147,7 @@ func tvShowDetailsHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
 }
 
 // handles the season details if a user klicks on a season
-func seasonDetailsHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
+func SeasonDetailsHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, err := url.Parse(r.URL.String())
 		if err != nil {
@@ -171,7 +177,7 @@ func seasonDetailsHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
 }
 
 // handles the episode a user clicks
-func episodeDetailsHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
+func EpisodeDetailsHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		u, err := url.Parse(r.URL.String())
 		if err != nil {
@@ -201,48 +207,38 @@ func episodeDetailsHandler(themoviedbAPI *themoviedb.Client) http.HandlerFunc {
 	}
 }
 
+// loads a config file with the name ".env" from a given path and returns a config or
+// an error if config could not be read
+func LoadConfig(path string) (config Config, err error) {
+	viper.AddConfigPath(path)
+	viper.SetConfigName(".env")
+	viper.SetConfigType("env")
+	viper.AutomaticEnv()
+
+	err = viper.ReadInConfig()
+	if err != nil {
+		return
+	}
+
+	err = viper.Unmarshal(&config)
+	return
+
+}
+
 func main() {
 
-	// load .env if it exists
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Error loading .env file")
-	}
-
-	// set port of the server
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3000" // set default port to 3000 if no port is set
-	}
-
-	apiKey := os.Getenv("API_KEY")
-	if apiKey == "" {
-		log.Fatal("Env: apiKey must be set") // api key has to be set for this to work!
-	}
-
-	lang := os.Getenv("LANGUAGE")
-	if lang == "" {
-		lang = "en-US" // default language is en-US
-	}
-
-	includeAdultProperty := os.Getenv("INCLUDE_ADULT")
-	if includeAdultProperty == "" {
-		includeAdultProperty = "False"
-	}
-
-	includeAdult, err := strconv.ParseBool(includeAdultProperty)
+	config, err := LoadConfig(".")
 
 	if err != nil {
-		log.Fatal(err)
-		includeAdult = false // in error case we set adult only to false for child protection ;)
+		log.Fatalf("Could not read config!")
 	}
 
 	themoviedbClient := &http.Client{Timeout: 10 * time.Second}
-	themoviedbAPI := themoviedb.NewClient(themoviedbClient, apiKey, lang, includeAdult)
+	themoviedbAPI := themoviedb.NewClient(themoviedbClient, config.APIKey, config.Language, config.IncludeAdult)
 
 	// declare router
-	r := newRouter(themoviedbAPI)
+	r := NewRouter(themoviedbAPI)
 
 	// serve
-	http.ListenAndServe(":"+port, r)
+	http.ListenAndServe(":"+config.Port, r)
 }
