@@ -120,6 +120,11 @@ install [Go](https://go.dev/doc/install) and you're ready to Go 😊.
    ```sh
    air
    ```
+5. Start Server with docker
+  ```sh
+  docker build -t my-go-app .
+  docker run -d -p 3000 my-go-app
+  ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
