@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -208,22 +209,26 @@ func NewClient(httpClient *http.Client, key string, lang string, includeAdult bo
 	if lang == "" {
 		lang = "en-US"
 	}
+	log.Printf("Created new client %v %v %v ", key, lang, includeAdult)
 
 	return &Client{httpClient, key, lang, includeAdult}
 }
 
 func (c *Client) SearchTVShows(query, page string) (*Results, error) {
 	endpoint := fmt.Sprintf(apiURL+"/search/tv?query=%s&api_key=%s&language=%s&page=%s&include_adult=%s", url.QueryEscape(query), c.key, c.lang, page, strconv.FormatBool(c.includeAdult))
+	log.Println(endpoint)
 	return SendRequest[Results](endpoint, c)
 }
 
 func (c *Client) GetTVShowDetails(id string) (*TVShowDetails, error) {
 	endpoint := fmt.Sprintf(apiURL+"/tv/%s?api_key=%s&language=%s", id, c.key, c.lang)
+	log.Println(endpoint)
 	return SendRequest[TVShowDetails](endpoint, c)
 }
 
 func (c *Client) GetSeasonDetails(id string, seasonNumber string) (*TVSeasonDetails, error) {
 	endpoint := fmt.Sprintf(apiURL+"/tv/%s/season/%s?api_key=%s&language=%s", id, seasonNumber, c.key, c.lang)
+	log.Println(endpoint)
 	details, error := SendRequest[TVSeasonDetails](endpoint, c)
 	if details != nil {
 		intID, err := strconv.Atoi(id)
@@ -236,6 +241,7 @@ func (c *Client) GetSeasonDetails(id string, seasonNumber string) (*TVSeasonDeta
 
 func (c *Client) GetEpisodeDetails(id string, seasonNumber string, episodeNumber string) (*TVEpisodeDetails, error) {
 	endpoint := fmt.Sprintf(apiURL+"/tv/%s/season/%s/episode/%s?api_key=%s&language=%s", id, seasonNumber, episodeNumber, c.key, c.lang)
+	log.Println(endpoint)
 	return SendRequest[TVEpisodeDetails](endpoint, c)
 }
 

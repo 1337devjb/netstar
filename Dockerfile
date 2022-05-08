@@ -1,8 +1,12 @@
-FROM golang:1.12.0-alpine
+FROM golang:1.18 as builder
 
-ENV GO111MODULE=on
 RUN mkdir /app
 Add . /app
 WORKDIR /app
-RUN go build -o main .
-CMD ["/app/main"]
+COPY go.mod ./
+COPY go.sum ./
+COPY .env ./
+COPY *.go ./
+
+RUN go build -o /docker-gs-ping
+CMD [ "/docker-gs-ping" ]

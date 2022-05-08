@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 
@@ -28,7 +29,7 @@ type Search struct {
 }
 
 type Config struct {
-	APIKey       string `mapstructure:API_KEY`
+	API_KEY      string `mapstructure:API_KEY`
 	Language     string `mapstructure:LANGUAGE`
 	IncludeAdult bool   `mapstructure:INCLUDE_ADULT`
 	Port         string `mapstructure:PORT`
@@ -227,6 +228,14 @@ func LoadConfig(path string) (config Config, err error) {
 
 func main() {
 
+	f, err := os.OpenFile("netstar.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
+
+	log.SetOutput(f)
+
 	config, err := LoadConfig(".")
 
 	if err != nil {
@@ -234,7 +243,7 @@ func main() {
 	}
 
 	themoviedbClient := &http.Client{Timeout: 10 * time.Second}
-	themoviedbAPI := themoviedb.NewClient(themoviedbClient, config.APIKey, config.Language, config.IncludeAdult)
+	themoviedbAPI := themoviedb.NewClient(themoviedbClient, config.API_KEY, config.Language, config.IncludeAdult)
 
 	// declare router
 	r := NewRouter(themoviedbAPI)

@@ -24,7 +24,7 @@
     <br />
     <br />
     <br />
-    <a href="https://github.com/1337devjb/netstar">View Demo</a>
+    <a href="http://netstar.bereths.com">View Demo</a>
     ·
     <a href="https://github.com/1337devjb/netstar/issues">Report Bug</a>
     ·
@@ -63,7 +63,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+[![Product Name Screen Shot][product-screenshot]](http://netstar.bereths.com)
 
 The goal of this PoC is to search and find tv shows from [https://developers.themoviedb.org](https://developers.themoviedb.org)
 
@@ -87,6 +87,7 @@ In the end the user gets displayed a title and a summary of the chosen episode.
 * [Go](https://go.dev)
 * [Bulma](https://bulma.io/)
 * [JQuery](https://jquery.com)
+* ❤
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -122,8 +123,8 @@ install [Go](https://go.dev/doc/install) and you're ready to Go 😊.
    ```
 5. Start Server with docker
   ```sh
-  docker build -t my-go-app .
-  docker run -d -p 3000 my-go-app
+  sudo docker build -t my-go-app --network host .
+  docker run -d -p 4000 --network host my-go-app 
   ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
